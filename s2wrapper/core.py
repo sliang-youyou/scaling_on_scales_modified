@@ -35,7 +35,13 @@ def forward(model, input, scales=None, img_sizes=None, max_split_size=None, resi
         input_multiscale.append(x)
 
     # run feedforward on each scale
-    outs_multiscale = [batched_forward(model, x, b) if split_forward else model(x) for x in input_multiscale]
+    # outs_multiscale = [batched_forward(model, x, b) if split_forward else model(x) for x in input_multiscale] # MODIFICATION BECAUSE BY DEFAULT split_forward = False
+    out_first = model(input_multiscale[0])
+    ids_restore = out_first.ids_restore
+    mask = out_first.ids_restore
+    outs_multiscale = [out_first.last_hidden_state]
+    outs_multiscale += [model(x).last_hidden_state for x in input_multiscale[1:]]
+    ############################################################################################################# MODIFICATION ENDS
     if num_prefix_token > 0:
         outs_prefix_multiscale = [out[:, :num_prefix_token] for out in outs_multiscale]
         outs_multiscale = [out[:, num_prefix_token:] for out in outs_multiscale]
@@ -59,4 +65,4 @@ def forward(model, input, scales=None, img_sizes=None, max_split_size=None, resi
         out_prefix_multiscale = torch.cat(outs_prefix_multiscale, dim=-1)
         out = torch.cat([out_prefix_multiscale, out], dim=1)
 
-    return out
+    return out, out_first, ids_restore, mask
