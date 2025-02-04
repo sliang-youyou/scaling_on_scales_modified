@@ -37,8 +37,9 @@ def forward(model, input, scales=None, img_sizes=None, max_split_size=None, resi
     # run feedforward on each scale
     # outs_multiscale = [batched_forward(model, x, b) if split_forward else model(x) for x in input_multiscale] # MODIFICATION BECAUSE BY DEFAULT split_forward = False
     out_first = model(input_multiscale[0])
+    print("Sanity Check: input_multiscale[0] shape is ", input_multiscale[0].shape)
     ids_restore = out_first.ids_restore
-    mask = out_first.ids_restore
+    mask = out_first.mask
     outs_multiscale = [out_first.last_hidden_state]
     outs_multiscale += [model(x).last_hidden_state for x in input_multiscale[1:]]
     ############################################################################################################# MODIFICATION ENDS
